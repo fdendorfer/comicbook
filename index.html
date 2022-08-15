@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Vite + Lit + TS</title>
+		<link rel="stylesheet" href="./src/index.css" />
+		<!-- <script type="module" src="/src/assets/fileloader-server.js"></script> -->
+	</head>
+	<body>
+		<aside>
+			<div>
+				<h2>Comicbook</h2>
+				<p>Version: 0.1.0</p>
+			</div>
+		</aside>
+
+		<main>
+			<h1>Preview</h1>
+
+			<div class="preview"></div>
+		</main>
+
+		<script type="module">
+			import { html, render } from 'lit'
+			const loadedStories = []
+
+			// Load all possible stories
+			const modules = import.meta.glob('./src/components/**/*.stories.ts', { eager: true })
+			for (const path in modules) {
+				loadedStories.push({
+					path,
+					name: path.match(/(?<=\.\/src\/components\/)([a-zA-Z-]*)/)[0],
+					stories: modules[path],
+				})
+			}
+			console.log('loadedStories', loadedStories)
+
+			// Display all files in list with respective stories
+			loadedStories.forEach((file) => {
+				// create html node
+				const node = html`<h3>${file.name}</h3>`
+				render(node, document.querySelector('aside'))
+				// @fd: continue
+				// Object.keys(file.stories).forEach((storyName) => {
+				// 	const subnode = html`<h4>${storyName}</h4>`
+				// 	render(subnode, document.querySelector('aside'))
+				// })
+			})
+
+			// Render selected story
+			let currentStoryPath = './src/components/flo-button/button.stories.ts'
+			let currentStory = await import(currentStoryPath)
+
+			render(currentStory.Default(), document.body.querySelector('.preview'))
+		</script>
+	</body>
+</html>
