@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js'
 @customElement('flo-nav')
 export class FloNav extends LitElement {
 	@property()
-	logo = '/assets/lit.svg'
+	logo = '/lit.svg'
 
 	@property({ type: Array })
 	items = []

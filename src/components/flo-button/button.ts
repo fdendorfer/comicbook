@@ -1,11 +1,14 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import litLogo from '../../assets/lit.svg'
+import litLogo from '../../../public/lit.svg'
 
 @customElement('flo-button')
 export class FloButton extends LitElement {
 	@property()
 	label = 'Click me'
+
+	@property()
+	img = ''
 
 	@property({ type: Number })
 	count = 0
@@ -13,7 +16,7 @@ export class FloButton extends LitElement {
 	render() {
 		return html`
 			<button @click=${this._onClick}>
-				<img src=${litLogo} alt="Icon" />
+				<img src=${this.img || litLogo} alt="Icon" />
 				<span>${this.label} is ${this.count}</span>
 			</button>
 		`

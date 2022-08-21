@@ -6,8 +6,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Vite + Lit + TS</title>
 		<link rel="stylesheet" href="./src/index.css" />
-		<!-- <script type="module" src="/src/assets/fileloader-server.js"></script> -->
 	</head>
+
 	<body>
 		<aside>
 			<div>
@@ -35,21 +35,45 @@
 					stories: modules[path],
 				})
 			}
-			console.log('loadedStories', loadedStories)
 
-			// Display all files in list with respective stories
+			// Display all components in a list with their respective stories
 			loadedStories.forEach((file) => {
 				document.querySelector('aside').innerHTML += `<h3>${file.name}</h3>`
 				Object.keys(file.stories).forEach((storyName) => {
-					document.querySelector('aside').innerHTML += `<span>${storyName}</span>`
+					document.querySelector('aside').innerHTML += `<a href="/${file.name}/${storyName}">${storyName}</a>`
 				})
 			})
 
-			// Render selected story
-			let currentStoryPath = './src/components/flo-button/button.stories.ts'
-			let currentStory = await import(currentStoryPath)
+			// Function to handle link clicks and page loads. Loads the story from route and renders it.
+			function renderStory(event) {
+				try {
+					// Stop default full page load
+					event?.preventDefault()
+					// Set title and route, if event was triggered by link
+					if (event?.target) history.pushState({}, '', event.target.href)
 
-			render(currentStory.Default(), document.body.querySelector('.preview'))
+					// Extract component and story name from path
+					const [_, componentName, storyName] = location.pathname.split('/')
+					// If invalid route, return
+					if (!componentName || !storyName) throw Error('Invalid route')
+
+					// Find component and story
+					const component = loadedStories.find((s) => s.name === componentName)
+					if (!component) throw Error('Component not found')
+					const story = component.stories[storyName]
+					if (!story) throw Error('Story not found')
+
+					// Render story inside preview div
+					render(story(), document.body.querySelector('.preview'))
+				} catch (error) {
+					console.error(error)
+					render(`${error}`, document.body.querySelector('.preview'))
+				}
+			}
+
+			// Handle route load and change
+			window.addEventListener('load', () => renderStory())
+			document.querySelectorAll('aside a').forEach((a) => a.addEventListener('click', renderStory))
 		</script>
 	</body>
 </html>
