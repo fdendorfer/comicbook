@@ -6,5 +6,5 @@ export const Default = () => {
 }
 
 export const Secondary = () => {
-	return html`<flo-button .count=${-3} label="Secondary says" img="/vite.svg"></flo-button>`
+	return html`<flo-button .count=${-3} label="Secondary says" .img=${{ src: '/src/assets/vite.svg', alt: 'Vite Logo' }} .isBig=${true}></flo-button>`
 }

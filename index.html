@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Lightweigth storybook alternative" />
 		<title>Vite + Lit + TS</title>
 		<link rel="stylesheet" href="./src/index.css" />
 	</head>
@@ -20,20 +21,33 @@
 			<h1>Preview</h1>
 
 			<div class="preview"></div>
+
+			<div class="controls">
+				<h2>Controls</h2>
+				<div class="placeholder"></div>
+			</div>
 		</main>
 
 		<script type="module">
 			import { html, render } from 'lit'
 			const loadedStories = []
+			typeof asdf === 'bigint'
 
-			// Load all possible stories
-			const modules = import.meta.glob('./src/components/**/*.stories.ts', { eager: true })
-			for (const path in modules) {
-				loadedStories.push({
+			// Load and prepare all possible stories
+			const stories = import.meta.glob('./src/components/**/*.stories.ts', { eager: true })
+			const definitions = import.meta.glob('./src/components/**/*[!.stories].ts', { eager: true })
+			for (const path in stories) {
+				const keys = Object.keys(definitions[path.replace('.stories', '')].default.prototype)
+				const o = new definitions[path.replace('.stories', '')].default()
+				const story = {
 					path,
 					name: path.match(/(?<=\.\/src\/components\/)([a-zA-Z-]*)/)[0],
-					stories: modules[path],
-				})
+					stories: stories[path],
+					props: Object.fromEntries(keys.map((k) => [k, typeof o[k]])),
+					instance: o,
+				}
+
+				loadedStories.push(story)
 			}
 
 			// Display all components in a list with their respective stories
@@ -65,9 +79,33 @@
 
 					// Render story inside preview div
 					render(story(), document.body.querySelector('.preview'))
+
+					// Render controls
+					const controlsDiv = document.querySelector('.controls .placeholder')
+					controlsDiv.innerHTML = ''
+					const el = document.querySelector('.preview > *')
+					// Display a control element for each prop of the component
+					Object.entries(component.props).forEach(([propName, propValue]) => {
+						controlsDiv.innerHTML += `<label for="${propName}">${propName}</label>`
+						if (propValue === 'string') {
+							controlsDiv.innerHTML += `<input type="text" id="${propName}" value="${el[propName]}" />`
+						} else if (propValue === 'number') {
+							controlsDiv.innerHTML += `<input type="number" id="${propName}" value="${el[propName]}" />`
+						} else if (propValue === 'boolean') {
+							controlsDiv.innerHTML += `<input type="checkbox" id="${propName}" ${el[propName] ? 'checked' : ''} value="" />`
+						} else if (propValue === 'object') {
+							controlsDiv.innerHTML += `<textarea id="${propName}" rows="3">${JSON.stringify(el[propName])}</textarea>`
+						}
+					})
+					// Listen for changes in controls and update the component
+					document.querySelectorAll('.controls input, .controls textarea').forEach((input) => {
+						input.addEventListener('change', (e) => {
+							el[e.target.id] = e.target.value || e.target.checked
+						})
+					})
 				} catch (error) {
 					console.error(error)
-					render(`${error}`, document.body.querySelector('.preview'))
+					render(`${error}`, document.querySelector('.preview'))
 				}
 			}
 

@@ -2,15 +2,15 @@ import { LitElement, css, html } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 
 @customElement('flo-nav')
-export class FloNav extends LitElement {
+export default class FloNav extends LitElement {
 	@property()
-	logo = '/lit.svg'
+	logo = '/src/assets/lit.svg'
 
 	@property({ type: Array })
 	items = []
 
 	render() {
-		return html` <nav><img .src=${this.logo} /></nav> `
+		return html` <nav><img .src=${this.logo} alt="Logo" /></nav> `
 	}
 
 	static styles = css`
