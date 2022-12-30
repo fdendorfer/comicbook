@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
+		<link rel="icon" type="image/svg+xml" href="/src/assets/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="description" content="Lightweigth storybook alternative" />
 		<title>Vite + Lit + TS</title>
@@ -28,90 +28,6 @@
 			</div>
 		</main>
 
-		<script type="module">
-			import { html, render } from 'lit'
-			const loadedStories = []
-			typeof asdf === 'bigint'
-
-			// Load and prepare all possible stories
-			const stories = import.meta.glob('./src/components/**/*.stories.ts', { eager: true })
-			const definitions = import.meta.glob('./src/components/**/*[!.stories].ts', { eager: true })
-			for (const path in stories) {
-				const keys = Object.keys(definitions[path.replace('.stories', '')].default.prototype)
-				const o = new definitions[path.replace('.stories', '')].default()
-				const story = {
-					path,
-					name: path.match(/(?<=\.\/src\/components\/)([a-zA-Z-]*)/)[0],
-					stories: stories[path],
-					props: Object.fromEntries(keys.map((k) => [k, typeof o[k]])),
-					instance: o,
-				}
-
-				loadedStories.push(story)
-			}
-
-			// Display all components in a list with their respective stories
-			loadedStories.forEach((file) => {
-				document.querySelector('aside').innerHTML += `<h3>${file.name}</h3>`
-				Object.keys(file.stories).forEach((storyName) => {
-					document.querySelector('aside').innerHTML += `<a href="/${file.name}/${storyName}">${storyName}</a>`
-				})
-			})
-
-			// Function to handle link clicks and page loads. Loads the story from route and renders it.
-			function renderStory(event) {
-				try {
-					// Stop default full page load
-					event?.preventDefault()
-					// Set title and route, if event was triggered by link
-					if (event?.target) history.pushState({}, '', event.target.href)
-
-					// Extract component and story name from path
-					const [_, componentName, storyName] = location.pathname.split('/')
-					// If invalid route, return
-					if (!componentName || !storyName) throw Error('Invalid route')
-
-					// Find component and story
-					const component = loadedStories.find((s) => s.name === componentName)
-					if (!component) throw Error('Component not found')
-					const story = component.stories[storyName]
-					if (!story) throw Error('Story not found')
-
-					// Render story inside preview div
-					render(story(), document.body.querySelector('.preview'))
-
-					// Render controls
-					const controlsDiv = document.querySelector('.controls .placeholder')
-					controlsDiv.innerHTML = ''
-					const el = document.querySelector('.preview > *')
-					// Display a control element for each prop of the component
-					Object.entries(component.props).forEach(([propName, propValue]) => {
-						controlsDiv.innerHTML += `<label for="${propName}">${propName}</label>`
-						if (propValue === 'string') {
-							controlsDiv.innerHTML += `<input type="text" id="${propName}" value="${el[propName]}" />`
-						} else if (propValue === 'number') {
-							controlsDiv.innerHTML += `<input type="number" id="${propName}" value="${el[propName]}" />`
-						} else if (propValue === 'boolean') {
-							controlsDiv.innerHTML += `<input type="checkbox" id="${propName}" ${el[propName] ? 'checked' : ''} value="" />`
-						} else if (propValue === 'object') {
-							controlsDiv.innerHTML += `<textarea id="${propName}" rows="3">${JSON.stringify(el[propName])}</textarea>`
-						}
-					})
-					// Listen for changes in controls and update the component
-					document.querySelectorAll('.controls input, .controls textarea').forEach((input) => {
-						input.addEventListener('change', (e) => {
-							el[e.target.id] = e.target.value || e.target.checked
-						})
-					})
-				} catch (error) {
-					console.error(error)
-					render(`${error}`, document.querySelector('.preview'))
-				}
-			}
-
-			// Handle route load and change
-			window.addEventListener('load', () => renderStory())
-			document.querySelectorAll('aside a').forEach((a) => a.addEventListener('click', renderStory))
-		</script>
+		<script type="module" src="./src/index.ts"></script>
 	</body>
 </html>
